@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="img/windows-icon.png" type="image/png" />
+    <title>Web Desktop</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: url('img/Background_App.png') no-repeat center center fixed;
+            background-size: cover;
+            overflow: hidden;
+        }
+
+        .desktop {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .icon {
+            width: 100px;
+            position: absolute;
+            text-align: center;
+            cursor: grab;
+            z-index: 1;
+            font-size: 14px;
+            transition: transform 0.2s ease, box-shadow 0.2s;
+            border-radius: 8px;
+        }
+
+        .icon.selected {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 2px #4a90e2 inset;
+        }
+
+        .icon:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .icon img {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 6px;
+        }
+
+        .taskbar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40px;
+            background: #e9e9e9;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .start-btn {
+            background: #d0e7ff;
+            color: black;
+            border: none;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .start-btn:hover {
+            background: #b0d4ff;
+        }
+
+        .start-btn img {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+        }
+
+        .start-menu {
+            position: absolute;
+            bottom: 45px;
+            left: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            display: none;
+            width: 240px;
+            z-index: 3;
+        }
+
+        .start-menu.active {
+            display: block;
+        }
+
+        .start-menu h4 {
+            margin: 0 0 8px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .start-menu ul {
+            max-height: 300px;
+            overflow-y: auto;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .start-menu ul li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .start-menu ul li:hover {
+            background: #f0f0f0;
+        }
+
+        .start-menu ul li img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+        .context-menu,
+        .context-taskbar {
+            position: absolute;
+            display: none;
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 160px;
+        }
+
+        .context-menu ul,
+        .context-taskbar ul {
+            margin: 0;
+            padding: 6px 0;
+            list-style: none;
+        }
+
+        .context-menu ul li,
+        .context-taskbar ul li {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .context-menu ul li:hover,
+        .context-taskbar ul li:hover {
+            background-color: #f0f0f0;
+        }
+
+        .taskbar .taskbar-app {
+            margin-left: 10px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+        }
+
+        .toggle-effect-btn {
+            margin-left: auto;
+            margin-right: 10px;
+            padding: 6px 12px;
+            background-color: #f06292;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+            transition: background 0.3s ease;
+        }
+
+        .toggle-effect-btn:hover {
+            background-color: #ec407a;
+        }
+    </style>
+    <script src="heart.js" defer></script>
+</head>
+
+<body>
+    <div class="desktop" id="desktop"></div>
+
+    <div class="taskbar">
+        <button class="start-btn" id="startButton">
+            <img src="img/windows-icon.png" alt="Start Icon" />
+            Start
+        </button>
+        <div id="taskbarPinned"></div>
+        <button id="toggleEffect" class="toggle-effect-btn">💖 Bật hiệu ứng</button>
+    </div>
+
+    <div class="start-menu" id="startMenu">
+        <h4>Danh sách ứng dụng</h4>
+        <ul>
+            <li onclick="window.open('https://qr-generator-dotanhaivaschools.streamlit.app/', '_blank')">
+                <img src="img/QR_Generator_App.png" alt="icon"> Tạo mã QR-Code
+            </li>
+            <li onclick="window.open('https://qr-reader-app.streamlit.app/', '_blank')">
+                <img src="img/QR_Reader_App.png" alt="icon"> Quét mã QR-Code
+            </li>
+            <li onclick="window.open('https://dotanhaivaschools-panorama-viewer.vercel.app/', '_blank')">
+                <img src="img/Panorama_Viewer_App.png" alt="icon"> Xem ảnh Panorama
+            </li>
+            <li onclick="window.open('https://dotanhaivaschools-convert-img-to-ico.streamlit.app/', '_blank')">
+                <img src="img/IMG_TO_ICO_App.png" alt="icon"> Chuyển Ảnh sang Icon
+            </li>
+        </ul>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <ul>
+            <li id="openApp">Mở ứng dụng</li>
+            <li id="pinApp">Ghim/Gỡ khỏi Taskbar</li>
+            <li id="removeApp">Xoá khỏi màn hình (đang phát triển)</li>
+        </ul>
+    </div>
+
+    <div class="context-taskbar" id="taskbarContextMenu">
+        <ul>
+            <li id="unpinApp">Gỡ khỏi Taskbar</li>
+        </ul>
+    </div>
+
+    <canvas id="sakura-canvas" style="position:fixed; top:0; left:0; pointer-events:none; z-index:999;"></canvas>
+
+    <script>
+        const apps = [
+            { url: "https://sites.google.com/view/dotanhaiict/môn-học/chứng-chỉ-tin-học/đề-mẫu?authuser=0", title: "Đề thi mẫu", img: "img/SampleExam.png" },
+        ];
+
+        const desktop = document.getElementById('desktop');
+        const taskbarPinned = document.getElementById('taskbarPinned');
+        const contextMenu = document.getElementById('contextMenu');
+        const taskbarContextMenu = document.getElementById('taskbarContextMenu');
+        const startBtn = document.getElementById('startButton');
+        const startMenu = document.getElementById('startMenu');
+
+        startBtn.addEventListener('click', () => {
+            startMenu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!startMenu.contains(e.target) && !startBtn.contains(e.target)) {
+                startMenu.classList.remove('active');
+            }
+            contextMenu.style.display = 'none';
+            taskbarContextMenu.style.display = 'none';
+        });
+
+        function renderIcons() {
+            desktop.innerHTML = "";
+            apps.forEach(app => {
+                const icon = document.createElement('div');
+                icon.className = 'icon';
+                icon.dataset.url = app.url;
+                icon.dataset.title = app.title;
+                icon.dataset.img = app.img;
+                desktop.appendChild(icon);
+            });
+            layoutIcons();
+        }
+
+        function layoutIcons() {
+            const icons = document.querySelectorAll('.icon');
+            const padding = 40;
+            const iconWidth = 100;
+            const iconHeight = 110;
+            const rows = Math.floor(window.innerHeight / (iconHeight + padding));
+
+            icons.forEach((icon, index) => {
+                const row = index % rows;
+                const col = Math.floor(index / rows);
+                const x = col * (iconWidth + padding) + padding;
+                const y = row * (iconHeight + padding) + padding;
+                icon.style.left = `${x}px`;
+                icon.style.top = `${y}px`;
+
+                const imgSrc = icon.dataset.img;
+                const title = icon.dataset.title;
+                icon.innerHTML = `<img src="${imgSrc}" alt="App Icon"><div><b>${title}</b></div>`;
+            });
+            attachIconEvents();
+        }
+
+        function attachIconEvents() {
+            document.querySelectorAll('.icon').forEach(icon => {
+                icon.addEventListener('dblclick', () => {
+                    const url = icon.dataset.url;
+                    if (url) window.open(url, '_blank');
+                });
+                icon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
+                    icon.classList.add('selected');
+                });
+                icon.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    currentIcon = icon;
+                    const menu = contextMenu;
+                    const menuHeight = 120;
+                    const top = (e.clientY + menuHeight > window.innerHeight) ? e.clientY - menuHeight : e.clientY;
+                    menu.style.left = e.pageX + 'px';
+                    menu.style.top = top + 'px';
+                    menu.style.display = 'block';
+                });
+            });
+        }
+
+        let currentIcon = null;
+        let currentPinnedURL = null;
+
+        document.getElementById('openApp').onclick = () => {
+            if (currentIcon) window.open(currentIcon.dataset.url, '_blank');
+            contextMenu.style.display = 'none';
+        };
+
+        document.getElementById('pinApp').onclick = () => {
+            if (currentIcon) {
+                const pinned = JSON.parse(localStorage.getItem('pinnedApps') || '[]');
+                const url = currentIcon.dataset.url;
+                const index = pinned.indexOf(url);
+                if (index === -1) pinned.push(url);
+                else pinned.splice(index, 1);
+                localStorage.setItem('pinnedApps', JSON.stringify(pinned));
+                renderTaskbar();
+                contextMenu.style.display = 'none';
+            }
+        };
+
+        document.getElementById('unpinApp').onclick = () => {
+            if (currentPinnedURL) {
+                const pinned = JSON.parse(localStorage.getItem('pinnedApps') || '[]');
+                const index = pinned.indexOf(currentPinnedURL);
+                if (index !== -1) pinned.splice(index, 1);
+                localStorage.setItem('pinnedApps', JSON.stringify(pinned));
+                renderTaskbar();
+                taskbarContextMenu.style.display = 'none';
+            }
+        };
+
+        function renderTaskbar() {
+            taskbarPinned.innerHTML = "";
+            const pinned = JSON.parse(localStorage.getItem('pinnedApps') || '[]');
+            pinned.forEach(url => {
+                const app = apps.find(a => a.url === url);
+                if (app) {
+                    const img = document.createElement('img');
+                    img.src = app.img;
+                    img.className = 'taskbar-app';
+                    img.title = app.title;
+                    img.onclick = () => window.open(app.url, '_blank');
+                    img.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        currentPinnedURL = app.url;
+                        const menu = taskbarContextMenu;
+                        menu.style.left = e.pageX + 'px';
+                        menu.style.top = e.pageY - 40 + 'px';
+                        menu.style.display = 'block';
+                    });
+                    taskbarPinned.appendChild(img);
+                }
+            });
+        }
+
+        renderIcons();
+        renderTaskbar();
+    </script>
+</body>
+
+</html>
